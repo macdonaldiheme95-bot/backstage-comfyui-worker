@@ -2,7 +2,7 @@
 # Base: blib-la/runpod-worker-comfy (SDXL variant, CUDA + ComfyUI pre-installed)
 # Adds: IP-Adapter Plus, ControlNet Aux, pre-baked models
 
-FROM timpietruskyblibla/runpod-worker-comfy:3.4.0-sdxl-1.0
+FROM timpietruskyblibla/runpod-worker-comfy:3.6.0-sdxl
 
 # ── Custom Nodes ─────────────────────────────────────────────────────────────
 
