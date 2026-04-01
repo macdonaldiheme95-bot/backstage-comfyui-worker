@@ -4,13 +4,17 @@
 
 FROM timpietruskyblibla/runpod-worker-comfy:3.6.0-sdxl
 
-# ── Custom Nodes via comfy-cli registry ──────────────────────────────────────
+# ── Custom Nodes ─────────────────────────────────────────────────────────────
+
+WORKDIR /comfyui/custom_nodes
 
 # IP-Adapter Plus (identity conditioning)
-RUN comfy-node-install comfyui-ipadapter-plus
+RUN git clone https://github.com/cubiq/ComfyUI_IPAdapter_plus.git && \
+    (cd ComfyUI_IPAdapter_plus && pip install -r requirements.txt 2>/dev/null || true)
 
 # ControlNet Aux Preprocessors (depth, openpose, etc.)
-RUN comfy-node-install comfyui-controlnet-aux
+RUN git clone https://github.com/Fannovel16/comfyui_controlnet_aux.git && \
+    (cd comfyui_controlnet_aux && pip install -r requirements.txt 2>/dev/null || true)
 
 # ── Models ───────────────────────────────────────────────────────────────────
 
