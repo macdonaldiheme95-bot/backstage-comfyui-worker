@@ -7,6 +7,12 @@ FROM timpietruskyblibla/runpod-worker-comfy:3.6.0-sdxl
 # Ensure we use the base image's venv for all pip installs
 ENV PATH="/opt/venv/bin:${PATH}"
 
+# Increase timeouts for heavy model loading (IP-Adapter + CLIP Vision + SDXL)
+ENV COMFY_API_AVAILABLE_MAX_RETRIES=1000
+ENV COMFY_API_AVAILABLE_INTERVAL_MS=500
+ENV WEBSOCKET_RECONNECT_ATTEMPTS=20
+ENV WEBSOCKET_RECONNECT_DELAY_S=10
+
 # ── Custom Nodes ─────────────────────────────────────────────────────────────
 
 WORKDIR /comfyui/custom_nodes
