@@ -1,8 +1,11 @@
 # Backstage Custom ComfyUI — RunPod Serverless
-# Base: blib-la/runpod-worker-comfy:3.6.0-sdxl (includes SDXL base + ComfyUI at /comfyui/)
+# Base: blib-la/runpod-worker-comfy:3.6.0-sdxl (ComfyUI at /comfyui/, venv at /opt/venv/)
 # Adds: IP-Adapter Plus, ControlNet Aux, RealVisXL V5.0, IP-Adapter models
 
 FROM timpietruskyblibla/runpod-worker-comfy:3.6.0-sdxl
+
+# Ensure we use the base image's venv for all pip installs
+ENV PATH="/opt/venv/bin:${PATH}"
 
 # ── Custom Nodes ─────────────────────────────────────────────────────────────
 
@@ -10,21 +13,25 @@ WORKDIR /comfyui/custom_nodes
 
 # IP-Adapter Plus (identity conditioning)
 RUN git clone https://github.com/cubiq/ComfyUI_IPAdapter_plus.git && \
-    (cd ComfyUI_IPAdapter_plus && pip install -r requirements.txt 2>/dev/null || true)
+    if [ -f ComfyUI_IPAdapter_plus/requirements.txt ]; then \
+      pip install --no-cache-dir -r ComfyUI_IPAdapter_plus/requirements.txt; \
+    fi
 
 # ControlNet Aux Preprocessors (depth, openpose, etc.)
 RUN git clone https://github.com/Fannovel16/comfyui_controlnet_aux.git && \
-    (cd comfyui_controlnet_aux && pip install -r requirements.txt 2>/dev/null || true)
+    if [ -f comfyui_controlnet_aux/requirements.txt ]; then \
+      pip install --no-cache-dir -r comfyui_controlnet_aux/requirements.txt; \
+    fi
 
 # ── Models ───────────────────────────────────────────────────────────────────
 
 WORKDIR /comfyui
 
-# SDXL Checkpoint — RealVisXL V5.0 (replace default SDXL base)
+# SDXL Checkpoint — RealVisXL V5.0
 RUN wget -q --show-progress -O models/checkpoints/RealVisXL_V5.0_fp16.safetensors \
     "https://huggingface.co/SG161222/RealVisXL_V5.0/resolve/main/RealVisXL_V5.0_fp16.safetensors"
 
-# IP-Adapter Plus Face (SDXL) — identity from face reference
+# IP-Adapter Plus Face (SDXL)
 RUN mkdir -p models/ipadapter && \
     wget -q --show-progress -O models/ipadapter/ip-adapter-plus-face_sdxl_vit-h.safetensors \
     "https://huggingface.co/h94/IP-Adapter/resolve/main/sdxl_models/ip-adapter-plus-face_sdxl_vit-h.safetensors"
@@ -38,5 +45,9 @@ RUN mkdir -p models/clip_vision && \
 RUN mkdir -p models/controlnet && \
     wget -q --show-progress -O models/controlnet/controlnet-depth-sdxl-fp16.safetensors \
     "https://huggingface.co/diffusers/controlnet-depth-sdxl-1.0/resolve/main/diffusion_pytorch_model.fp16.safetensors"
+
+# Verify custom nodes are discoverable
+RUN ls -la /comfyui/custom_nodes/ && \
+    python -c "import sys; sys.path.insert(0, '/comfyui'); print('Custom nodes dir OK')"
 
 WORKDIR /
